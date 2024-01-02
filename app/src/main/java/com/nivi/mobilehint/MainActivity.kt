@@ -43,7 +43,8 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             .addOnFailureListener {
-                showMessage("Phone Number Hint failed")
+//                showMessage("Phone Number Hint failed")
+                onSubscriptionManager()
             }
     }
 
@@ -76,16 +77,21 @@ class MainActivity : AppCompatActivity() {
         val subscriptionManager = getSystemService(TELEPHONY_SUBSCRIPTION_SERVICE) as SubscriptionManager
         val subsInfoList = subscriptionManager.activeSubscriptionInfoList
         val number = StringBuilder()
-        for (subscriptionInfo in subsInfoList) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                number.append(subscriptionManager.getPhoneNumber(subscriptionInfo.subscriptionId)).append("\n")
-            } else {
-                number.append(subscriptionInfo.number).append("\n")
-            }
 
+        for (subscriptionInfo in subsInfoList) {
+            val isPrimary = subscriptionInfo.subscriptionId == SubscriptionManager.getDefaultSubscriptionId()
+            val numberType = if (isPrimary) "Primary" else "Secondary"
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                number.append("$numberType: ${subscriptionManager.getPhoneNumber(subscriptionInfo.subscriptionId)}\n")
+            } else {
+                number.append("$numberType: ${subscriptionInfo.number}\n")
+            }
         }
+
         binding.displayNumber.text = number.toString()
     }
+
 
     private fun showMessage(message: String) {
         Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
